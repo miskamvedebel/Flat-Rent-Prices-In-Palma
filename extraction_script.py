@@ -25,7 +25,7 @@ def link_builder(rent_or_buy):
     pages = []
     for i in range(1,int(last_page)+1):
         pages.append("{}pagina-{}.htm".format(website, i))
-    return pages, last_page  
+    return pages, last_page 
 #Finding all pages from the website
 all_pages, last_page = link_builder('rent')
 
@@ -36,7 +36,7 @@ for t in all_pages:
     df_temp = pd.DataFrame(data=numpy.zeros((0,len(columns))), columns=columns)
     page_content_tree = get_tree(t)
     df_temp['Flat'] = get_tag_class(page_content_tree, "a", '"item-link "')
-    df_temp['Price'] = get_tag_class(page_content_tree, "span", '"item-price"')
+    df_temp['Price'] = get_tag_class(page_content_tree, "span", '"item-price h2-simulated"')
     df = pd.concat([df, df_temp], ignore_index = True)
     soup = BeautifulSoup(urllib.request.urlopen(t))
     all_items_links = soup.find_all("a", class_="item-link ")
@@ -76,22 +76,26 @@ df["Street"], df["Type"], df["Area"], df["City"] = '', '', '', ''
 
 for i in range(0, len(df["Flat"])):
     row = df["Flat"][i].split(',')
-    df['Street'][i] = row[0].split(" in ")[1]
-    df['Type'][i] = row[0].split(" in ")[0]
     l = len(row)
-    if l == 2:
-        df["City"][i] = row[1]
-    elif l == 3:
-        df["Area"][i] = row[1]
-        df["City"][i] = row[2]
-    elif l == 4:
-        df["Area"][i] = row[2]
-        df["City"][i] = row[3]
-    elif l == 5:
-        df["Area"][i] = row[3]
-        df["City"][i] = row[4]
+    if l>1:
+        df['Street'][i] = row[0].split(" in ")[1]
+        df['Type'][i] = row[0].split(" in ")[0]
+        if l == 2:
+            df["City"][i] = row[1]
+        elif l == 3:
+            df["Area"][i] = row[1]
+            df["City"][i] = row[2]
+        elif l == 4:
+            df["Area"][i] = row[2]
+            df["City"][i] = row[3]
+        elif l == 5:
+            df["Area"][i] = row[3]
+            df["City"][i] = row[4]
+        else:
+            df["City"][i] = row[1]
     else:
-        df["City"][i] = row[1]
+       df['City'][i] = row[0].split(" in ")[1]
+       df['Type'][i] = row[0].split(" in ")[0] 
 del(a_tag_href, all_div_tag, all_items_links, all_pages, columns, d, details,
     df_temp, full_link_to_flat, i, id_, l, last_page, links, lp, numbers, row, 
     s, span_tag, span_txt, t, tp)
